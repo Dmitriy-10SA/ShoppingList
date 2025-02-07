@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">ShoppingList</string>
+    <string name="app_name">Перечень покупок</string>
+    <string name="add_shop_item">Добавить продукт</string>
+    <string name="error_replay">Ошибка! Попробуйте еще раз!</string>
+    <string name="save">Сохранить</string>
+    <string name="input_name">Введите название:</string>
+    <string name="input_count">Введите количество:</string>
+    <string name="input_name_error">Введите название!</string>
+    <string name="input_count_error">Введите целое число больше 0!</string>
 </resources>
