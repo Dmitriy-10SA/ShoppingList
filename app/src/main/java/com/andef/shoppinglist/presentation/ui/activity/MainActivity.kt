@@ -2,19 +2,21 @@ package com.andef.shoppinglist.presentation.ui.activity
 
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.andef.shoppinglist.R
 import com.andef.shoppinglist.presentation.adapter.ShopItemsAdapter
+import com.andef.shoppinglist.presentation.ui.fragment.OnSaveFragmentChange
+import com.andef.shoppinglist.presentation.ui.fragment.ShopItemFragment
 import com.andef.shoppinglist.presentation.ui.viewmodel.MainViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
     private lateinit var recyclerViewAllShopItems: RecyclerView
     private lateinit var shopItemsAdapter: ShopItemsAdapter
 
@@ -23,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var itemTouchHelper: ItemTouchHelper
 
     private lateinit var viewModel: MainViewModel
+
+    private var fragmentContainerViewMain: FragmentContainerView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +38,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         initAll()
+    }
+
+    override fun onSave() {
+        supportFragmentManager.popBackStack()
     }
 
     private fun initAll() {
@@ -80,6 +88,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        fragmentContainerViewMain = findViewById(R.id.fragmentContainerViewMain)
+
         initRecyclerViewAndAdapter()
         initFloatingActionButton()
     }
@@ -94,8 +104,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun initShopItemListeners() {
         shopItemsAdapter.setOnShopItemClickListener { shopItem ->
-            val intent = ShopItemActivity.newIntentChangeShopItem(this@MainActivity, shopItem)
-            startActivity(intent)
+            if (isFragmentMode()) {
+                val fragment = ShopItemFragment.newInstanceChangeShopItem(
+                    shopItem.id,
+                    shopItem.name,
+                    shopItem.count,
+                    shopItem.isActive
+                )
+                supportFragmentManager.popBackStack()
+                supportFragmentManager.beginTransaction()
+                    .add(R.id.fragmentContainerViewMain, fragment)
+                    .addToBackStack(null)
+                    .commit()
+            } else {
+                val intent = ShopItemActivity.newIntentChangeShopItem(this@MainActivity, shopItem)
+                startActivity(intent)
+            }
         }
         shopItemsAdapter.setOnShopItemLongClickListener { shopItem ->
             viewModel.changeShopItemActiveState(shopItem, !shopItem.isActive)
@@ -105,8 +129,19 @@ class MainActivity : AppCompatActivity() {
     private fun initFloatingActionButton() {
         floatingActionButtonAddShopItem = findViewById(R.id.floatingActionButtonAddShopItem)
         floatingActionButtonAddShopItem.setOnClickListener {
-            val intent = ShopItemActivity.newIntentAddShopItem(this)
-            startActivity(intent)
+            if (isFragmentMode()) {
+                val fragment = ShopItemFragment.newInstanceAddShopItem()
+                supportFragmentManager.popBackStack()
+                supportFragmentManager.beginTransaction()
+                    .add(R.id.fragmentContainerViewMain, fragment)
+                    .addToBackStack(null)
+                    .commit()
+            } else {
+                val intent = ShopItemActivity.newIntentAddShopItem(this)
+                startActivity(intent)
+            }
         }
     }
+
+    private fun isFragmentMode(): Boolean = fragmentContainerViewMain != null
 }
