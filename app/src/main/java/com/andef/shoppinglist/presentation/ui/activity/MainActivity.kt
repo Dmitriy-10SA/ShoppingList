@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +16,6 @@ import com.andef.shoppinglist.presentation.factory.ViewModelFactory
 import com.andef.shoppinglist.presentation.ui.fragment.OnSaveFragmentChange
 import com.andef.shoppinglist.presentation.ui.fragment.ShopItemFragment
 import com.andef.shoppinglist.presentation.ui.viewmodel.MainViewModel
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
