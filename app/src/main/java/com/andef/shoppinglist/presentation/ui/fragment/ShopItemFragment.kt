@@ -5,31 +5,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.andef.shoppinglist.R
+import com.andef.shoppinglist.databinding.FragmentShopItemBinding
 import com.andef.shoppinglist.presentation.app.ShoppingListApplication
 import com.andef.shoppinglist.presentation.factory.ViewModelFactory
 import com.andef.shoppinglist.presentation.ui.viewmodel.ShopItemViewModel
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import javax.inject.Inject
 
 class ShopItemFragment : Fragment() {
     private val component by lazy {
         (requireActivity().application as ShoppingListApplication).component
     }
-
-    private lateinit var textInputLayoutName: TextInputLayout
-    private lateinit var textInputLayoutCount: TextInputLayout
-
-    private lateinit var textInputEditTextName: TextInputEditText
-    private lateinit var textInputEditTextCount: TextInputEditText
-
-    private lateinit var buttonSave: Button
+    private var _binding: FragmentShopItemBinding? = null
+    private val binding get() = _binding!!
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -64,6 +56,9 @@ class ShopItemFragment : Fragment() {
             showErrorToast()
             onSaveFragmentChange.onSave()
         }
+        if (arguments?.getBoolean(IS_HORIZONTAL_SCREEN) == true) {
+            binding.main.background.alpha = 0
+        }
     }
 
     private fun showErrorToast() {
@@ -78,8 +73,9 @@ class ShopItemFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_shop_item, container, false)
+    ): View {
+        _binding = FragmentShopItemBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     private fun initForAdd() {
@@ -93,9 +89,9 @@ class ShopItemFragment : Fragment() {
             }
         }
 
-        buttonSave.setOnClickListener {
-            val name = textInputEditTextName.text.toString().trim()
-            val count = textInputEditTextCount.text.toString().trim()
+        binding.buttonSave.setOnClickListener {
+            val name = binding.textInputEditTextName.text.toString().trim()
+            val count = binding.textInputEditTextCount.text.toString().trim()
             viewModel.addShopItem(name, count)
         }
     }
@@ -107,18 +103,18 @@ class ShopItemFragment : Fragment() {
 
         viewModel.isSuccessChange.observe(viewLifecycleOwner) { isSuccess ->
             if (isSuccess) {
-                textInputLayoutName.isErrorEnabled = false
-                textInputLayoutCount.isErrorEnabled = false
+                binding.textInputLayoutName.isErrorEnabled = false
+                binding.textInputLayoutCount.isErrorEnabled = false
                 onSaveFragmentChange.onSave()
             } else {
                 showErrorToast()
             }
         }
 
-        buttonSave.setOnClickListener {
+        binding.buttonSave.setOnClickListener {
             val id = arguments?.getInt(SHOP_ITEM_ID)!!
-            val name = textInputEditTextName.text.toString().trim()
-            val count = textInputEditTextCount.text.toString().trim()
+            val name = binding.textInputEditTextName.text.toString().trim()
+            val count = binding.textInputEditTextCount.text.toString().trim()
             val isActive = arguments?.getBoolean(SHOP_ITEM_IS_ACTIVE)!!
             viewModel.changeShopItem(id, name, count, isActive)
         }
@@ -127,47 +123,44 @@ class ShopItemFragment : Fragment() {
     private fun setTextFields() {
         val name = arguments?.getString(SHOP_ITEM_NAME)
         val count = arguments?.getInt(SHOP_ITEM_COUNT).toString()
-        textInputEditTextName.setText(name)
-        textInputEditTextCount.setText(count)
+        binding.textInputEditTextName.setText(name)
+        binding.textInputEditTextCount.setText(count)
     }
 
     private fun initForIntersect() {
-        textInputLayoutName = requireView().findViewById(R.id.textInputLayoutName)
-        textInputLayoutCount = requireView().findViewById(R.id.textInputLayoutCount)
-
-        textInputEditTextName = requireView().findViewById(R.id.textInputEditTextName)
-        textInputEditTextCount = requireView().findViewById(R.id.textInputEditTextCount)
-
         setTextListeners()
-
-        buttonSave = requireView().findViewById(R.id.buttonSave)
 
         initViewModelForIntersect()
     }
 
     private fun initViewModelForIntersect() {
         viewModel.isNotRightName.observe(viewLifecycleOwner) {
-            textInputLayoutName.error = getString(R.string.input_name_error)
-            textInputLayoutName.isErrorEnabled = true
+            binding.textInputLayoutName.error = getString(R.string.input_name_error)
+            binding.textInputLayoutName.isErrorEnabled = true
         }
         viewModel.isNotRightCount.observe(viewLifecycleOwner) {
-            textInputLayoutCount.error = getString(R.string.input_count_error)
-            textInputLayoutCount.isErrorEnabled = true
+            binding.textInputLayoutCount.error = getString(R.string.input_count_error)
+            binding.textInputLayoutCount.isErrorEnabled = true
         }
     }
 
     private fun setTextListeners() {
-        textInputEditTextName.addTextChangedListener {
+        binding.textInputEditTextName.addTextChangedListener {
             if (it.toString().isNotEmpty()) {
-                textInputLayoutName.isErrorEnabled = false
+                binding.textInputLayoutName.isErrorEnabled = false
             }
         }
 
-        textInputEditTextCount.addTextChangedListener {
+        binding.textInputEditTextCount.addTextChangedListener {
             if (it.toString().isNotEmpty()) {
-                textInputLayoutCount.isErrorEnabled = false
+                binding.textInputLayoutCount.isErrorEnabled = false
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
@@ -178,11 +171,22 @@ class ShopItemFragment : Fragment() {
         private const val SHOP_ITEM_NAME = "shopItemName"
         private const val SHOP_ITEM_COUNT = "shopItemCount"
         private const val SHOP_ITEM_IS_ACTIVE = "shopItemIsActive"
+        private const val IS_HORIZONTAL_SCREEN = "isHorizontalScreen"
 
         fun newInstanceAddShopItem(): ShopItemFragment {
             return ShopItemFragment().apply {
                 arguments = Bundle().apply {
                     putString(SCREEN_MODE, ADD_SCREEN_MODE)
+                    putBoolean(IS_HORIZONTAL_SCREEN, false)
+                }
+            }
+        }
+
+        fun newInstanceAddShopItem(isHorizontalScreen: Boolean): ShopItemFragment {
+            return ShopItemFragment().apply {
+                arguments = Bundle().apply {
+                    putString(SCREEN_MODE, ADD_SCREEN_MODE)
+                    putBoolean(IS_HORIZONTAL_SCREEN, isHorizontalScreen)
                 }
             }
         }

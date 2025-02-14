@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.andef.shoppinglist.R
+import com.andef.shoppinglist.databinding.ActivityMainBinding
 import com.andef.shoppinglist.presentation.adapter.ShopItemsAdapter
 import com.andef.shoppinglist.presentation.app.ShoppingListApplication
 import com.andef.shoppinglist.presentation.factory.ViewModelFactory
@@ -23,11 +24,11 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
     private val component by lazy {
         (application as ShoppingListApplication).component
     }
+    private val binding by lazy {
+        ActivityMainBinding.inflate(layoutInflater)
+    }
 
-    private lateinit var recyclerViewAllShopItems: RecyclerView
     private lateinit var shopItemsAdapter: ShopItemsAdapter
-
-    private lateinit var floatingActionButtonAddShopItem: FloatingActionButton
 
     private lateinit var itemTouchHelper: ItemTouchHelper
 
@@ -37,12 +38,10 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
         ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
     }
 
-    private var fragmentContainerViewMain: FragmentContainerView? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         component.inject(this)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -78,7 +77,7 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
                 viewModel.removeShopItem(shopItem)
             }
         })
-        itemTouchHelper.attachToRecyclerView(recyclerViewAllShopItems)
+        itemTouchHelper.attachToRecyclerView(binding.recyclerViewAllShopItems)
     }
 
     private fun initViewModelObserves() {
@@ -99,16 +98,13 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
     }
 
     private fun initViews() {
-        fragmentContainerViewMain = findViewById(R.id.fragmentContainerViewMain)
-
         initRecyclerViewAndAdapter()
         initFloatingActionButton()
     }
 
     private fun initRecyclerViewAndAdapter() {
-        recyclerViewAllShopItems = findViewById(R.id.recyclerViewAllShopItems)
         shopItemsAdapter = ShopItemsAdapter()
-        recyclerViewAllShopItems.adapter = shopItemsAdapter
+        binding.recyclerViewAllShopItems.adapter = shopItemsAdapter
 
         initShopItemListeners()
     }
@@ -138,10 +134,9 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
     }
 
     private fun initFloatingActionButton() {
-        floatingActionButtonAddShopItem = findViewById(R.id.floatingActionButtonAddShopItem)
-        floatingActionButtonAddShopItem.setOnClickListener {
+        binding.floatingActionButtonAddShopItem.setOnClickListener {
             if (isFragmentMode()) {
-                val fragment = ShopItemFragment.newInstanceAddShopItem()
+                val fragment = ShopItemFragment.newInstanceAddShopItem(isFragmentMode())
                 supportFragmentManager.popBackStack()
                 supportFragmentManager.beginTransaction()
                     .add(R.id.fragmentContainerViewMain, fragment)
@@ -154,5 +149,5 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
         }
     }
 
-    private fun isFragmentMode(): Boolean = fragmentContainerViewMain != null
+    private fun isFragmentMode(): Boolean = binding.fragmentContainerViewMain != null
 }
