@@ -18,4 +18,4 @@
 *Cсылка на скачивание приложения:*
 
 
-[**Download app (скачать приложение)**](позже)
+[**Download app (скачать приложение)**](https://www.rustore.ru/catalog/app/com.andef.shoppinglist)
