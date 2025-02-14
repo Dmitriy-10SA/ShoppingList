@@ -28,7 +28,8 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private lateinit var shopItemsAdapter: ShopItemsAdapter
+    @Inject
+    lateinit var shopItemsAdapter: ShopItemsAdapter
 
     private lateinit var itemTouchHelper: ItemTouchHelper
 
@@ -103,7 +104,6 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
     }
 
     private fun initRecyclerViewAndAdapter() {
-        shopItemsAdapter = ShopItemsAdapter()
         binding.recyclerViewAllShopItems.adapter = shopItemsAdapter
 
         initShopItemListeners()
