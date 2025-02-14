@@ -7,8 +7,10 @@ import com.andef.shoppinglist.R
 import com.andef.shoppinglist.domain.entities.ShopItem
 import com.andef.shoppinglist.presentation.adapterListeners.OnShopItemClickListener
 import com.andef.shoppinglist.presentation.adapterListeners.OnShopItemLongClickListener
+import javax.inject.Inject
 
-class ShopItemsAdapter : ListAdapter<ShopItem, ShopItemsViewHolder>(ShopItemsCallback()) {
+class ShopItemsAdapter @Inject constructor() :
+    ListAdapter<ShopItem, ShopItemsViewHolder>(ShopItemsCallback()) {
     private var onShopItemClickListener: OnShopItemClickListener? = null
     private var onShopItemLongClickListener: OnShopItemLongClickListener? = null
 

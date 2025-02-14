@@ -1,61 +1,52 @@
 package com.andef.shoppinglist.presentation.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.andef.shoppinglist.domain.entities.ShopItem
 import com.andef.shoppinglist.domain.usecases.ChangeShopItemUseCase
 import com.andef.shoppinglist.domain.usecases.GetAllShopItemsUseCase
 import com.andef.shoppinglist.domain.usecases.RemoveShopItemUseCase
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val compositeDisposable = CompositeDisposable()
-
-    private val getAllShopItemsUseCase = GetAllShopItemsUseCase(application)
-    private val removeShopItemUseCase = RemoveShopItemUseCase(application)
-    private val changeShopItemUseCase = ChangeShopItemUseCase(application)
-
+class MainViewModel @Inject constructor(
+    private val getAllShopItemsUseCase: GetAllShopItemsUseCase,
+    private val removeShopItemUseCase: RemoveShopItemUseCase,
+    private val changeShopItemUseCase: ChangeShopItemUseCase
+) : ViewModel() {
     val getAllShopItems = getAllShopItemsUseCase.execute()
 
     private val _error = MutableLiveData<Unit>()
     val error: LiveData<Unit> = _error
 
+    private val errorExceptionHandler = CoroutineExceptionHandler { _, _ ->
+        _error.value = Unit
+    }
+
     fun changeShopItemActiveState(
         shopItem: ShopItem,
         newIsActive: Boolean
     ) {
-        val disposable = changeShopItemUseCase.execute(
-            shopItem,
-            shopItem.name,
-            shopItem.count,
-            newIsActive
-        )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {},
-                { _error.value = Unit }
+        viewModelScope.launch(errorExceptionHandler) {
+            if (!isActive) throw CancellationException()
+            changeShopItemUseCase.execute(
+                shopItem,
+                shopItem.name,
+                shopItem.count,
+                newIsActive
             )
-        compositeDisposable.add(disposable)
+        }
     }
 
     fun removeShopItem(shopItem: ShopItem) {
-        val disposable = removeShopItemUseCase.execute(shopItem)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {},
-                { _error.value = Unit }
-            )
-        compositeDisposable.add(disposable)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        compositeDisposable.dispose()
+        viewModelScope.launch(errorExceptionHandler) {
+            if (!isActive) throw CancellationException()
+            removeShopItemUseCase.execute(shopItem)
+        }
     }
 }

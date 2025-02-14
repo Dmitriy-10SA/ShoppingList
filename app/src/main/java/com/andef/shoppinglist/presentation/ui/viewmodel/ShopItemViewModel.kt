@@ -1,24 +1,22 @@
 package com.andef.shoppinglist.presentation.ui.viewmodel
 
-import android.app.Application
-import android.content.Context
-import android.content.Intent
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.andef.shoppinglist.domain.entities.ShopItem
 import com.andef.shoppinglist.domain.usecases.AddShopItemUseCase
 import com.andef.shoppinglist.domain.usecases.ChangeShopItemUseCase
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ShopItemViewModel(application: Application) : AndroidViewModel(application) {
-    private val compositeDisposable = CompositeDisposable()
-
-    private val changeShopItemUseCase = ChangeShopItemUseCase(application)
-    private val addShopItemUseCase = AddShopItemUseCase(application)
-
+class ShopItemViewModel @Inject constructor(
+    private val changeShopItemUseCase: ChangeShopItemUseCase,
+    private val addShopItemUseCase: AddShopItemUseCase
+) : ViewModel() {
     private val _isSuccessAdd = MutableLiveData<Boolean>()
     val isSuccessAdd: LiveData<Boolean> = _isSuccessAdd
 
@@ -30,6 +28,14 @@ class ShopItemViewModel(application: Application) : AndroidViewModel(application
 
     private val _isNotRightCount = MutableLiveData<Unit>()
     val isNotRightCount: LiveData<Unit> = _isNotRightCount
+
+    private val addExceptionHandler = CoroutineExceptionHandler { _, _ ->
+        _isSuccessAdd.value = false
+    }
+
+    private val changeExceptionHandler = CoroutineExceptionHandler { _, _ ->
+        _isSuccessChange.value = false
+    }
 
     private fun isRightNameAndCount(name: String, count: String): Boolean {
         var flag = true
@@ -49,14 +55,11 @@ class ShopItemViewModel(application: Application) : AndroidViewModel(application
             return
         }
         val shopItem = ShopItem(name, count.toInt())
-        val disposable = addShopItemUseCase.execute(shopItem)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { _isSuccessAdd.value = true },
-                { _isSuccessAdd.value = false }
-            )
-        compositeDisposable.add(disposable)
+        viewModelScope.launch(addExceptionHandler) {
+            if (!isActive) throw CancellationException()
+            addShopItemUseCase.execute(shopItem)
+            _isSuccessAdd.value = true
+        }
     }
 
     fun changeShopItem(id: Int, newName: String, newCount: String, newIsActive: Boolean) {
@@ -64,18 +67,10 @@ class ShopItemViewModel(application: Application) : AndroidViewModel(application
             return
         }
         val shopItem = ShopItem(id, newName, newCount.toInt(), newIsActive)
-        val disposable = changeShopItemUseCase.execute(shopItem, newName, newCount.toInt(), newIsActive)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { _isSuccessChange.value = true },
-                { _isSuccessChange.value = false }
-            )
-        compositeDisposable.add(disposable)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        compositeDisposable.dispose()
+        viewModelScope.launch(changeExceptionHandler) {
+            if (!isActive) throw CancellationException()
+            changeShopItemUseCase.execute(shopItem, newName, newCount.toInt(), newIsActive)
+            _isSuccessChange.value = true
+        }
     }
 }

@@ -11,11 +11,18 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.andef.shoppinglist.R
+import com.andef.shoppinglist.presentation.app.ShoppingListApplication
+import com.andef.shoppinglist.presentation.factory.ViewModelFactory
 import com.andef.shoppinglist.presentation.ui.viewmodel.ShopItemViewModel
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import javax.inject.Inject
 
 class ShopItemFragment : Fragment() {
+    private val component by lazy {
+        (requireActivity().application as ShoppingListApplication).component
+    }
+
     private lateinit var textInputLayoutName: TextInputLayout
     private lateinit var textInputLayoutCount: TextInputLayout
 
@@ -24,13 +31,17 @@ class ShopItemFragment : Fragment() {
 
     private lateinit var buttonSave: Button
 
-    private lateinit var viewModel: ShopItemViewModel
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val viewModel by lazy {
+        ViewModelProvider(this, viewModelFactory)[ShopItemViewModel::class.java]
+    }
 
     private lateinit var onSaveFragmentChange: OnSaveFragmentChange
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-
+        component.inject(this)
         if (context is OnSaveFragmentChange) {
             onSaveFragmentChange = object : OnSaveFragmentChange {
                 override fun onSave() {
@@ -44,7 +55,6 @@ class ShopItemFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[ShopItemViewModel::class.java]
 
         if (arguments?.getString(SCREEN_MODE) == ADD_SCREEN_MODE) {
             initForAdd()

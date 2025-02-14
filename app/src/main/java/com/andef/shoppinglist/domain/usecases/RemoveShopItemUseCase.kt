@@ -1,14 +1,13 @@
 package com.andef.shoppinglist.domain.usecases
 
-import android.content.Context
-import com.andef.shoppinglist.data.repository.ShopItemsRepositoryImpl
 import com.andef.shoppinglist.domain.entities.ShopItem
-import io.reactivex.Completable
+import com.andef.shoppinglist.domain.repository.ShopItemsRepository
+import javax.inject.Inject
 
-class RemoveShopItemUseCase(context: Context) {
-    private val repository = ShopItemsRepositoryImpl.getInstance(context)
-
-    fun execute(shopItem: ShopItem): Completable {
-        return repository.removeShopItem(shopItem)
+class RemoveShopItemUseCase @Inject constructor(
+    private val repository: ShopItemsRepository
+) {
+    suspend fun execute(shopItem: ShopItem) {
+        repository.removeShopItem(shopItem)
     }
 }

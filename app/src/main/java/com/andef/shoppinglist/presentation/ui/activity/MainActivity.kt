@@ -11,12 +11,19 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.andef.shoppinglist.R
 import com.andef.shoppinglist.presentation.adapter.ShopItemsAdapter
+import com.andef.shoppinglist.presentation.app.ShoppingListApplication
+import com.andef.shoppinglist.presentation.factory.ViewModelFactory
 import com.andef.shoppinglist.presentation.ui.fragment.OnSaveFragmentChange
 import com.andef.shoppinglist.presentation.ui.fragment.ShopItemFragment
 import com.andef.shoppinglist.presentation.ui.viewmodel.MainViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
+    private val component by lazy {
+        (application as ShoppingListApplication).component
+    }
+
     private lateinit var recyclerViewAllShopItems: RecyclerView
     private lateinit var shopItemsAdapter: ShopItemsAdapter
 
@@ -24,11 +31,16 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
 
     private lateinit var itemTouchHelper: ItemTouchHelper
 
-    private lateinit var viewModel: MainViewModel
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val viewModel by lazy {
+        ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
+    }
 
     private var fragmentContainerViewMain: FragmentContainerView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        component.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -45,7 +57,6 @@ class MainActivity : AppCompatActivity(), OnSaveFragmentChange {
     }
 
     private fun initAll() {
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         initViews()
         initViewModelObserves()
         initItemTouchHelper()
