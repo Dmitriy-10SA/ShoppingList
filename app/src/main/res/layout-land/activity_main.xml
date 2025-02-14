@@ -12,13 +12,13 @@
         android:id="@+id/recyclerViewAllShopItems"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/guideline_middle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         tools:itemCount="14"
-        tools:listitem="@layout/shope_item_active"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        tools:listitem="@layout/shope_item_active" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButtonAddShopItem"

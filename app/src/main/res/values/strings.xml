@@ -7,4 +7,5 @@
     <string name="input_count">Введите количество:</string>
     <string name="input_name_error">Введите название!</string>
     <string name="input_count_error">Введите целое число больше 0!</string>
+    <string name="hint_long_click">Используйте долгое нажатие на продукт из списка, чтобы пометить его купленным.</string>
 </resources>
