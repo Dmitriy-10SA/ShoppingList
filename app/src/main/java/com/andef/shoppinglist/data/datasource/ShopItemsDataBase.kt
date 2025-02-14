@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.andef.shoppinglist.data.dao.ShopItemsDao
-import com.andef.shoppinglist.domain.entities.ShopItem
+import com.andef.shoppinglist.di.ApplicationScope
 
-@Database(entities = [ShopItem::class], version = 1, exportSchema = false)
-abstract class ShopItemsDataBase: RoomDatabase() {
+@ApplicationScope
+@Database(entities = [ShopItemDbModel::class], version = 1, exportSchema = false)
+abstract class ShopItemsDataBase : RoomDatabase() {
     abstract val dao: ShopItemsDao
 
     companion object {
